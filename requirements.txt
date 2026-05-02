@@ -1,0 +1,7 @@
+gtfs-realtime-bindings
+requests
+psycopg2-binary
+python-dotenv
+pandas
+dbt-postgres
+apache-airflow
