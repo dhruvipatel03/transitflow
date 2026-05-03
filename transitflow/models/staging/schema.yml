@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: stg_routes
+    description: "Cleaned routes from TTC GTFS feed"
+    columns:
+      - name: route_id
+        description: "Unique route identifier"
+        tests:
+          - not_null
+          - unique
+      - name: route_short_name
+        description: "Short route name (e.g. 36, 504)"
+        tests:
+          - not_null
+      - name: route_long_name
+        description: "Full route name"
+        tests:
+          - not_null
+
+  - name: stg_stops
+    description: "Cleaned stops from TTC GTFS feed"
+    columns:
+      - name: stop_id
+        description: "Unique stop identifier"
+        tests:
+          - not_null
+          - unique
+      - name: stop_name
+        tests:
+          - not_null
+      - name: stop_lat
+        tests:
+          - not_null
+      - name: stop_lon
+        tests:
+          - not_null
+
+  - name: stg_trips
+    description: "Cleaned trips from TTC GTFS feed"
+    columns:
+      - name: trip_id
+        description: "Unique trip identifier"
+        tests:
+          - not_null
+          - unique
+      - name: route_id
+        tests:
+          - not_null
+
+  - name: stg_stop_times
+    description: "Cleaned stop times from TTC GTFS feed"
+    columns:
+      - name: trip_id
+        tests:
+          - not_null
+      - name: stop_id
+        tests:
+          - not_null
+      - name: stop_sequence
+        tests:
+          - not_null

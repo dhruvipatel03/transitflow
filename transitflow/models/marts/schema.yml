@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: fct_trip_stops
+    description: "Fact table joining trips, stops, routes and stop times"
+    columns:
+      - name: trip_id
+        tests:
+          - not_null
+      - name: stop_id
+        tests:
+          - not_null
+      - name: route_id
+        tests:
+          - not_null
+
+  - name: fct_stops_per_route
+    description: "Aggregated stops and trips count per route"
+    columns:
+      - name: route_short_name
+        tests:
+          - not_null
+      - name: total_trips
+        tests:
+          - not_null
+      - name: total_stops
+        tests:
+          - not_null
