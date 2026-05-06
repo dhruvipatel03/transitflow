@@ -20,14 +20,24 @@ def get_connection():
 
 # ─── Download GTFS Static Feed ─────────────────────────────────────
 def download_gtfs():
-    zip_path = os.path.join(os.path.dirname(__file__), "gtfs.zip")
-
-    # If valid zip already exists (downloaded by CI or placed manually), use it
-    if os.path.exists(zip_path) and zipfile.is_zipfile(zip_path):
-        print("📂 Loading GTFS feed from local file...")
-        return zipfile.ZipFile(zip_path)
-
-    raise Exception("❌ gtfs.zip not found! Please place it in the ingestion/ folder.")
+    # Check multiple possible locations for gtfs.zip
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    repo_root  = os.path.dirname(script_dir)
+    
+    possible_paths = [
+        os.path.join(script_dir, "gtfs.zip"),   # ingestion/gtfs.zip
+        os.path.join(repo_root, "gtfs.zip"),     # root/gtfs.zip
+        "ingestion/gtfs.zip",                     # relative path
+        "gtfs.zip",                               # current directory
+    ]
+    
+    for zip_path in possible_paths:
+        print(f"🔍 Checking {zip_path}...")
+        if os.path.exists(zip_path) and zipfile.is_zipfile(zip_path):
+            print(f"📂 Found valid GTFS at {zip_path}")
+            return zipfile.ZipFile(zip_path)
+    
+    raise Exception("❌ gtfs.zip not found in any expected location!")
 
 # ─── Create Raw Tables ─────────────────────────────────────────────
 def create_tables(conn):
