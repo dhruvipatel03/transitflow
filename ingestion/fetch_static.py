@@ -11,11 +11,11 @@ load_dotenv()
 # ─── Database Connection ───────────────────────────────────────────
 def get_connection():
     return psycopg2.connect(
-        host="127.0.0.1",
-        port=5433,
-        dbname="transitflow_db",
-        user="postgres",
-        password="postgres"
+        host=os.environ.get("POSTGRES_HOST", "127.0.0.1"),
+        port=int(os.environ.get("POSTGRES_PORT", 5433)),
+        dbname=os.environ.get("POSTGRES_DB", "transitflow_db"),
+        user=os.environ.get("POSTGRES_USER", "postgres"),
+        password=os.environ.get("POSTGRES_PASSWORD", "postgres")
     )
 
 # ─── Download GTFS Static Feed ─────────────────────────────────────

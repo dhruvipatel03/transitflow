@@ -1,0 +1,85 @@
+name: TransitFlow CI — dbt Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  dbt-tests:
+    runs-on: ubuntu-latest
+    name: Run dbt Tests
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: transitflow_db
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: ✅ Checkout code
+        uses: actions/checkout@v3
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install dependencies
+        run: |
+          pip install dbt-postgres psycopg2-binary pandas python-dotenv gtfs-realtime-bindings
+
+      - name: 🗄️ Create schemas
+        run: |
+          PGPASSWORD=postgres psql -h localhost -p 5433 -U postgres -d transitflow_db -c "CREATE SCHEMA IF NOT EXISTS raw; CREATE SCHEMA IF NOT EXISTS analytics;"
+
+      - name: 📥 Run ingestion
+        run: |
+          python ingestion/fetch_static.py
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5433
+          POSTGRES_DB: transitflow_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+
+      - name: 🔧 Copy dbt profiles
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << EOF
+          transitflow:
+            target: dev
+            outputs:
+              dev:
+                type: postgres
+                host: localhost
+                port: 5433
+                user: postgres
+                password: postgres
+                dbname: transitflow_db
+                schema: analytics
+                threads: 1
+          EOF
+
+      - name: 🏗️ Run dbt models
+        run: |
+          cd transitflow
+          dbt run
+
+      - name: 🧪 Run dbt tests
+        run: |
+          cd transitflow
+          dbt test
+
+      - name: 🎉 Success
+        run: echo "All dbt tests passed!"
