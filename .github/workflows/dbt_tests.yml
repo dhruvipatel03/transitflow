@@ -37,7 +37,7 @@ jobs:
 
       - name: 📦 Install dependencies
         run: |
-          pip install dbt-postgres psycopg2-binary pandas python-dotenv gtfs-realtime-bindings
+          pip install dbt-postgres psycopg2-binary pandas python-dotenv requests
 
       - name: 🗄️ Create schemas
         run: |
@@ -46,8 +46,8 @@ jobs:
       - name: 📦 Download GTFS data
         run: |
           curl -L "https://github.com/google/transit/raw/master/gtfs/spec/en/examples/sample-feed.zip" -o ingestion/gtfs.zip
-          echo "Downloaded $(du -sh ingestion/gtfs.zip | cut -f1) of GTFS data"
-          
+          python -c "import zipfile; print('✅ Valid ZIP:', zipfile.is_zipfile('ingestion/gtfs.zip'))"
+
       - name: 📥 Run ingestion
         run: |
           python ingestion/fetch_static.py
@@ -57,7 +57,6 @@ jobs:
           POSTGRES_DB: transitflow_db
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        continue-on-error: false
 
       - name: 🔧 Copy dbt profiles
         run: |
@@ -88,4 +87,4 @@ jobs:
           dbt test
 
       - name: 🎉 Success
-        run: echo "All dbt tests passed!"
+        run: echo "✅ All dbt tests passed! TransitFlow pipeline is healthy."
