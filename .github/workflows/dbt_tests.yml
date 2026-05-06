@@ -45,11 +45,19 @@ jobs:
 
       - name: 📦 Download GTFS data
         run: |
-          curl -L "https://github.com/google/transit/raw/master/gtfs/spec/en/examples/sample-feed.zip" -o ingestion/gtfs.zip
-          cp ingestion/gtfs.zip gtfs.zip
-          python -c "import zipfile; print('✅ Valid ZIP:', zipfile.is_zipfile('ingestion/gtfs.zip'))"
+          echo "Current directory: $(pwd)"
+          echo "Downloading GTFS..."
+          curl -v -L "https://github.com/google/transit/raw/master/gtfs/spec/en/examples/sample-feed.zip" -o ingestion/gtfs.zip 2>&1
+          echo "Exit code: $?"
+          echo "File size: $(wc -c < ingestion/gtfs.zip) bytes"
           ls -la ingestion/
-        
+          python -c "
+          import zipfile, os
+          path = 'ingestion/gtfs.zip'
+          print('Exists:', os.path.exists(path))
+          print('Size:', os.path.getsize(path) if os.path.exists(path) else 0)
+          print('Valid ZIP:', zipfile.is_zipfile(path) if os.path.exists(path) else False)
+          " 
       - name: 📥 Run ingestion
         run: |
           python ingestion/fetch_static.py
