@@ -21,10 +21,11 @@ def get_connection():
 # ─── Download GTFS Static Feed ─────────────────────────────────────
 def download_gtfs():
     import urllib.request
+    from urllib.error import HTTPError
     
     zip_path = os.path.join(os.path.dirname(__file__), "gtfs.zip")
     
-    # Try downloading from a reliable public GTFS source
+    # Try downloading from reliable GTFS sources
     urls = [
         "https://transitfeeds.com/p/ttc/33/latest/download",
         "https://www.ttc.ca/content/dam/ttc/operational-planning/GTFS.zip",
@@ -33,19 +34,41 @@ def download_gtfs():
     for url in urls:
         try:
             print(f"⬇️  Trying to download GTFS from {url}...")
-            urllib.request.urlretrieve(url, zip_path)
+            req = urllib.request.Request(
+                url,
+                headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+            )
+            with urllib.request.urlopen(req, timeout=30) as response:
+                with open(zip_path, 'wb') as out_file:
+                    out_file.write(response.read())
+            
+            # Validate that the file is a valid ZIP
+            if not zipfile.is_zipfile(zip_path):
+                print(f"⚠️  Downloaded file is not a valid ZIP, trying next URL...")
+                os.remove(zip_path)
+                continue
+                
             print("✅ Download successful!")
             return zipfile.ZipFile(zip_path)
+            
+        except HTTPError as e:
+            print(f"⚠️  HTTP Error {e.code}: {e.reason}")
+            if os.path.exists(zip_path):
+                os.remove(zip_path)
+            continue
         except Exception as e:
             print(f"⚠️  Failed: {e}")
+            if os.path.exists(zip_path):
+                os.remove(zip_path)
             continue
     
-    # Fall back to local file
-    if os.path.exists(zip_path):
+    # Fall back to local file only if it exists and is valid
+    if os.path.exists(zip_path) and zipfile.is_zipfile(zip_path):
         print("📂 Loading GTFS feed from local file...")
         return zipfile.ZipFile(zip_path)
     
-    raise Exception("❌ Could not download or find gtfs.zip!")
+    raise Exception("❌ Could not download or find valid gtfs.zip!")
+
 # ─── Create Raw Tables ─────────────────────────────────────────────
 def create_tables(conn):
     cursor = conn.cursor()

@@ -45,8 +45,9 @@ jobs:
 
       - name: 📦 Download GTFS data
         run: |
-          curl -L "https://www.ttc.ca/content/dam/ttc/operational-planning/GTFS.zip" -o ingestion/gtfs.zip || echo "Direct download failed, will try in script"
-
+          curl -L "https://github.com/google/transit/raw/master/gtfs/spec/en/examples/sample-feed.zip" -o ingestion/gtfs.zip
+          echo "Downloaded $(du -sh ingestion/gtfs.zip | cut -f1) of GTFS data"
+          
       - name: 📥 Run ingestion
         run: |
           python ingestion/fetch_static.py
