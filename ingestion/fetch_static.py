@@ -20,13 +20,32 @@ def get_connection():
 
 # ─── Download GTFS Static Feed ─────────────────────────────────────
 def download_gtfs():
+    import urllib.request
+    
     zip_path = os.path.join(os.path.dirname(__file__), "gtfs.zip")
     
-    if not os.path.exists(zip_path):
-        raise Exception("❌ gtfs.zip not found! Please place it in the ingestion/ folder.")
+    # Try downloading from a reliable public GTFS source
+    urls = [
+        "https://transitfeeds.com/p/ttc/33/latest/download",
+        "https://www.ttc.ca/content/dam/ttc/operational-planning/GTFS.zip",
+    ]
     
-    print("📂 Loading GTFS feed from local file...")
-    return zipfile.ZipFile(zip_path)
+    for url in urls:
+        try:
+            print(f"⬇️  Trying to download GTFS from {url}...")
+            urllib.request.urlretrieve(url, zip_path)
+            print("✅ Download successful!")
+            return zipfile.ZipFile(zip_path)
+        except Exception as e:
+            print(f"⚠️  Failed: {e}")
+            continue
+    
+    # Fall back to local file
+    if os.path.exists(zip_path):
+        print("📂 Loading GTFS feed from local file...")
+        return zipfile.ZipFile(zip_path)
+    
+    raise Exception("❌ Could not download or find gtfs.zip!")
 # ─── Create Raw Tables ─────────────────────────────────────────────
 def create_tables(conn):
     cursor = conn.cursor()

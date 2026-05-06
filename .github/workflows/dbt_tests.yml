@@ -43,6 +43,10 @@ jobs:
         run: |
           PGPASSWORD=postgres psql -h localhost -p 5433 -U postgres -d transitflow_db -c "CREATE SCHEMA IF NOT EXISTS raw; CREATE SCHEMA IF NOT EXISTS analytics;"
 
+      - name: 📦 Download GTFS data
+        run: |
+          curl -L "https://www.ttc.ca/content/dam/ttc/operational-planning/GTFS.zip" -o ingestion/gtfs.zip || echo "Direct download failed, will try in script"
+
       - name: 📥 Run ingestion
         run: |
           python ingestion/fetch_static.py
@@ -52,6 +56,7 @@ jobs:
           POSTGRES_DB: transitflow_db
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+        continue-on-error: false
 
       - name: 🔧 Copy dbt profiles
         run: |
