@@ -30,7 +30,7 @@ def download_gtfs():
 
     # Download it directly
     print("⬇️  Downloading sample GTFS feed...")
-    url = "https://github.com/google/transit/raw/master/gtfs/spec/en/examples/sample-feed.zip"
+    url = "https://media.githubusercontent.com/media/google/transit/master/gtfs/spec/en/examples/sample-feed.zip"
     response = requests.get(url, timeout=60)
     
     if response.status_code == 200:
