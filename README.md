@@ -5,6 +5,7 @@
 ![dbt](https://img.shields.io/badge/dbt-1.11-FF694B?style=flat-square&logo=dbt)
 ![Airflow](https://img.shields.io/badge/Airflow-2.9.0-017CEE?style=flat-square&logo=apacheairflow)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker)
+![CI](https://github.com/dhruvipatel03/transitflow/actions/workflows/dbt_tests.yml/badge.svg)
 
 An end-to-end data engineering pipeline that ingests **4.2 million+ rows** of real-world TTC (Toronto Transit Commission) GTFS transit data, transforms it using dbt, and orchestrates the entire workflow with Apache Airflow — all containerized with Docker.
 
