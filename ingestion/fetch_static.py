@@ -20,25 +20,27 @@ def get_connection():
 
 # ─── Download GTFS Static Feed ─────────────────────────────────────
 def download_gtfs():
-    # Check multiple possible locations for gtfs.zip
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    repo_root  = os.path.dirname(script_dir)
+    zip_path = os.path.join(script_dir, "gtfs.zip")
+
+    # If valid zip already exists, use it
+    if os.path.exists(zip_path) and zipfile.is_zipfile(zip_path):
+        print(f"📂 Found valid GTFS at {zip_path}")
+        return zipfile.ZipFile(zip_path)
+
+    # Download it directly
+    print("⬇️  Downloading sample GTFS feed...")
+    url = "https://github.com/google/transit/raw/master/gtfs/spec/en/examples/sample-feed.zip"
+    response = requests.get(url, timeout=60)
     
-    possible_paths = [
-        os.path.join(script_dir, "gtfs.zip"),   # ingestion/gtfs.zip
-        os.path.join(repo_root, "gtfs.zip"),     # root/gtfs.zip
-        "ingestion/gtfs.zip",                     # relative path
-        "gtfs.zip",                               # current directory
-    ]
-    
-    for zip_path in possible_paths:
-        print(f"🔍 Checking {zip_path}...")
-        if os.path.exists(zip_path) and zipfile.is_zipfile(zip_path):
-            print(f"📂 Found valid GTFS at {zip_path}")
+    if response.status_code == 200:
+        with open(zip_path, 'wb') as f:
+            f.write(response.content)
+        if zipfile.is_zipfile(zip_path):
+            print("✅ Downloaded and validated GTFS feed!")
             return zipfile.ZipFile(zip_path)
     
-    raise Exception("❌ gtfs.zip not found in any expected location!")
-
+    raise Exception(f"❌ Failed to download GTFS. Status: {response.status_code}")
 # ─── Create Raw Tables ─────────────────────────────────────────────
 def create_tables(conn):
     cursor = conn.cursor()
